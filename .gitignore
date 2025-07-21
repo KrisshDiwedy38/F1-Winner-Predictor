@@ -14,3 +14,6 @@ venv/
 
 # Ignore system/IDE files
 .vscode/
+
+# Ignore text files
+.txt 
