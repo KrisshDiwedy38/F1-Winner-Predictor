@@ -16,4 +16,4 @@ venv/
 .vscode/
 
 # Ignore text files
-.txt 
+.txt
