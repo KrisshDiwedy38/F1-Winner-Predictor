@@ -1,1 +1,0 @@
-# F1 Winner Prediction model
