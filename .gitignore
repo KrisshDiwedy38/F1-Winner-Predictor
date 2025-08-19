@@ -17,3 +17,7 @@ venv/
 
 # Ignore text files
 .txt
+
+
+# Ignore the Cache folder
+backend/data/f1cache
