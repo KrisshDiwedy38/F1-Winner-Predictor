@@ -20,4 +20,4 @@ venv/
 
 
 # Ignore the Cache folder
-backend/data/f1cache
+f1cache
