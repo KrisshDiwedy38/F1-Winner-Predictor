@@ -1,5 +1,4 @@
 import fastf1 as f1
-import sqlite3
 import pandas as pd
 import numpy as np
 import os
