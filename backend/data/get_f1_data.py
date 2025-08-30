@@ -1,5 +1,7 @@
 import fastf1 as f1
+import sqlite3
 import pandas as pd
+import numpy as np
 import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -46,8 +48,6 @@ for year in years:
          # Handling null time values given to lapped cars 
          if row.Status == "+1 Lap":
             time += 100.00
-         elif row.Status == "+2 Laps":
-            time += 200.00
          elif pd.isnull(row.Time):
             time += 0.0
          else:
@@ -56,35 +56,45 @@ for year in years:
          
          # Race Result table
          race_data = {
-            'Position' : row.Position,
-            'RaceID' : race_id,
-            'RaceName' : race_name,
-            'TeamName' : row.TeamName,
-            'DriverCode' : row.Abbreviation,
-            'FullName' : row.FullName,
-            'TimeSecs' : round(time,4),
-            'Status' : row.Status
+            'position' : row.Position,
+            'raceid' : race_id,
+            'racename' : race_name,
+            'teamname' : row.TeamName,
+            'drivercode' : row.Abbreviation,
+            'fullname' : row.FullName,
+            'timesecs' : round(time,4),
+            'status' : row.Status
          }
          # Race Weather table
          weather_data = {
-            'RaceID' : race_id,
-            'RaceName' : race_name,
-            'Rainfall' : rainfall
+            'raceid' : race_id,
+            'racename' : race_name,
+            'rainfall' : rainfall
          }
          result_values.append(race_data)
       weather_values.append(weather_data)
+      print(f"{race_id} DONE ")
 
 # Converting values into a panads dataframe
-f1_result_df = pd.DataFrame(result_values)
-f1_weather_df = pd.DataFrame(weather_values)
+race_df = pd.DataFrame(result_values)
+weather_df = pd.DataFrame(weather_values)
 
-race_dict = f1_result_df.to_dict(orient='records')
-weather_dict = f1_weather_df.to_dict(orient='records')
+race_df = race_df.replace({np.nan: None})
+weather_df = weather_df.replace({np.nan: None})
+
+# Fix missing positions
+race_df['position'] = race_df['position'].fillna(-1).astype(int)
+
+race_dict = race_df.to_dict(orient="records")
+weather_dict = weather_df.to_dict(orient="records")
 
 batch_size = 500
 for i in range(0, len(race_dict), batch_size):
     supabase.table('races').upsert(race_dict[i:i+batch_size]).execute()
 
+print("\nRace Data Uploaded")
+
 for i in range(0, len(weather_dict), batch_size):
     supabase.table('weather').upsert(weather_dict[i:i+batch_size]).execute()
 
+print("\nWeather Data Uploaded")
