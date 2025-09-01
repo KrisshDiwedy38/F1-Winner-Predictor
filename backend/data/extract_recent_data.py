@@ -5,7 +5,7 @@ from datetime import date
 import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
-from get_supabase_data import load_data
+from .get_supabase_data import load_data
 
 h_race_df, h_weather_df = load_data()
 
@@ -167,7 +167,7 @@ def get_recent_data(current_year):
 
    return current_year
 
-def main():
+def recent_data_main():
    current_year = date.today().year
    
    # Get recent data for current year
@@ -180,5 +180,5 @@ def main():
    print(f"\n✓ Data extraction complete for {current_year}")
 
 if __name__ == "__main__":
-   main()
+   recent_data_main()
    
