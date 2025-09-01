@@ -13,7 +13,27 @@ supabase : Client = create_client(supabase_url,supabase_key)
 
 def load_data():
    try:
-      race_response = supabase.table("races").select("*").execute()
+      all_races = []
+      current_page = 0
+      page_size = 1000
+      while True:
+         # Calculate the range for the current page
+         start_index = current_page * page_size
+         end_index = start_index + page_size - 1
+
+         # Fetch a "page" of data
+         race_response = supabase.table("races").select("*").range(start_index, end_index).execute()
+
+         # Add the fetched data to our list
+         all_races.extend(race_response.data)
+
+         # If the number of returned rows is less than the page size,
+         # it means we have reached the last page.
+         if len(race_response.data) < page_size:
+            break
+
+         # Move to the next page
+         current_page += 1
    except Exception as e:
       print(f"Error: {e}")
    else:

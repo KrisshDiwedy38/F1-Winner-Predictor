@@ -33,46 +33,42 @@ for year in years:
       # Extracting race name
       race_name = str(session).split(":")[1].split("-")[0].strip()
       # Checking if the race had rain
-      if session.weather_data["Rainfall"].any():
-         rainfall = 1
-      else:
-         rainfall = 0
+      rainfall = 1 if session.weather_data["Rainfall"].any() else 0
       
       # Getting required data
       result_data = session.results.loc[:,['TeamName','Abbreviation','FullName','Time', 'Position', 'Status']].copy()
-      time = 0
-
-      for row in result_data.sort_values("Position").itertuples():
-
-         # Handling null time values given to lapped cars 
-         if row.Status == "+1 Lap":
+      # Process each driver's result
+      for _, row in result_data.iterrows():
+        # Handling null time values given to lapped cars 
+        if row.Status == "+1 Lap":
             time += 100.00
-         elif pd.isnull(row.Time):
-            time += 0.0
-         else:
-            time += row.Time.total_seconds()
-
-         
-         # Race Result table
-         race_data = {
-            'position' : row.Position,
-            'raceid' : race_id,
-            'racename' : race_name,
-            'teamname' : row.TeamName,
-            'drivercode' : row.Abbreviation,
-            'fullname' : row.FullName,
-            'timesecs' : round(time,4),
-            'status' : row.Status
-         }
-         # Race Weather table
-         weather_data = {
-            'raceid' : race_id,
-            'racename' : race_name,
-            'rainfall' : rainfall
-         }
-         result_values.append(race_data)
+        elif row.Status == "+2 Laps":
+            time += 200.00
+        else: 
+            # Converting timedelta value to float value(in seconds)
+            time += (row.Time).total_seconds()
+        
+        race_data = {
+            'position': int(row['Position']) if not pd.isnull(row['Position']) else None,
+            'raceid': race_id,
+            'racename': race_name,
+            'teamname': row['TeamName'],
+            'drivercode': row['Abbreviation'],
+            'fullname': row['FullName'],
+            'timesecs': round(time,4),
+            'status': row['Status']
+        }
+        result_values.append(race_data)
+      
+      # Store weather data (one entry per race)
+      weather_data = {
+            'raceid': race_id,
+            'racename': race_name,
+            'rainfall': rainfall
+      }
       weather_values.append(weather_data)
-      print(f"{race_id} DONE ")
+      
+      print(f"{race_id} - {race_name} completed")
 
 # Converting values into a panads dataframe
 race_df = pd.DataFrame(result_values)
