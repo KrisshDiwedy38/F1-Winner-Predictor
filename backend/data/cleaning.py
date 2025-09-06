@@ -32,8 +32,11 @@ def data_cleaning():
    # Handling missing values in Weather DF 
    weather_df['rainfall'] = weather_df['rainfall'].fillna(0)
 
+   merged_df = race_df.merge(weather_df[['raceid', 'rainfall']], on="raceid", how="left")
 
-   return race_df, weather_df
+   merged_df["winner"] = (merged_df["position"] == 1).astype(int)
+
+   return merged_df
 
 
 
