@@ -1,22 +1,9 @@
 import fastf1 as f1
 import pandas as pd
 import numpy as np
+import sqlite3
 from datetime import date
 import os
-from dotenv import load_dotenv
-from supabase import create_client, Client
-from .get_supabase_data import load_data
-
-h_race_df, h_weather_df = load_data()
-
-load_dotenv()
-
-supabase_url = os.getenv("SUPABASE_URL")
-supabase_key = os.getenv("SUPABASE_KEY")
-
-supabase : Client = create_client(supabase_url, supabase_key)
-
-f1.Cache.enable_cache('backend/data/f1cache')
 
 def completed_rounds(year):
    """Get number of completed races for a given year"""
@@ -33,6 +20,11 @@ def completed_rounds(year):
 def get_recent_data(current_year):
    """Extract recent F1 race data and weather information"""
    
+   # Load race data from SQLite database
+   conn = sqlite3.connect("data/race_data.db")
+   h_race_df = pd.read_sql("SELECT * FROM race_table", conn)
+   conn.close()
+   
    result_values = []
    weather_values = []
 
@@ -43,7 +35,7 @@ def get_recent_data(current_year):
       return current_year
 
    # Get last race info from database
-   last_race_id = h_race_df['raceid'].iloc[-1] if not h_race_df.empty else "0_0"
+   last_race_id = h_race_df['RaceID'].iloc[-1] if not h_race_df.empty else "0_0"
    
    last_entry_year = int(last_race_id.split("_")[0])
    last_entry_race = int(last_race_id.split("_")[1])
@@ -56,8 +48,6 @@ def get_recent_data(current_year):
    # Calculate starting race number
    if last_entry_year != current_year:
       last_season_races = completed_rounds(last_entry_year)
-      print(last_season_races)
-      print(last_entry_race)
       if last_entry_race == last_season_races:
          start_race = 1
       else:
@@ -98,24 +88,24 @@ def get_recent_data(current_year):
                # Converting timedelta value to float value(in seconds)
                time += (row.Time).total_seconds()
                
+                        # Race Result table
             race_data = {
-               'position': int(row['Position']) if not pd.isnull(row['Position']) else None,
-               'raceid': race_id,
-               'racename': race_name,
-               'teamname': row['TeamName'],
-               'drivercode': row['Abbreviation'],
-               'fullname': row['FullName'],
-               'timesecs': round(time,4),
-               'status': row['Status']
+               'Position' : row.Position,
+               'RaceID' : race_id,
+               'RaceName' : race_name,
+               'TeamName' : row.TeamName,
+               'DriverCode' : row.Abbreviation,
+               'FullName' : row.FullName,
+               'Time(s)' : round(time,4),
+               'Status' : row.Status
+            }
+            # Race Weather table
+            weather_data = {
+               'RaceID' : race_id,
+               'RaceName' : race_name,
+               'Rainfall' : rainfall
             }
             result_values.append(race_data)
-         
-         # Store weather data (one entry per race)
-         weather_data = {
-               'raceid': race_id,
-               'racename': race_name,
-               'rainfall': rainfall
-         }
          weather_values.append(weather_data)
          
          print(f"{race_id} - {race_name} completed")
@@ -126,59 +116,18 @@ def get_recent_data(current_year):
       return current_year
 
    # Convert to DataFrames
-   race_df = pd.DataFrame(result_values)
-   weather_df = pd.DataFrame(weather_values)
+   f1_race_df = pd.DataFrame(result_values)
+   f1_weather_df = pd.DataFrame(weather_values)
 
-   print(f"\nExtracted {len(race_df)} race results and {len(weather_df)} weather records")
-   print("\nSample Race Data:")
-   print(race_df)
-   print("\nWeather Data:")
-   print(weather_df)
-
-   # Upload to Supabase
-   if not race_df.empty:
-      try:
-         race_df = race_df.replace({np.nan: None})
-         weather_df = weather_df.replace({np.nan: None}) 
-
-         # Fix missing positions
-         race_df['position'] = race_df['position'].fillna(-1).astype(int) 
-
-         race_dict = race_df.to_dict(orient="records")
-         weather_dict = weather_df.to_dict(orient="records")  
-
-         batch_size = 500
-         
-         # Upload race data in batches
-         for i in range(0, len(race_dict), batch_size):
-               batch = race_dict[i:i+batch_size]
-               supabase.table('races').upsert(batch).execute()
-         print("✓ Race data uploaded to Supabase")
-
-         # Upload weather data in batches
-         for i in range(0, len(weather_dict), batch_size):
-               batch = weather_dict[i:i+batch_size]
-               supabase.table('weather').upsert(batch).execute()
-         print("✓ Weather data uploaded to Supabase")
-         
-      except Exception as e:
-         print(f"Error uploading to Supabase: {e}")
-         return False
-
-   return current_year
-
-def recent_data_main():
-   current_year = date.today().year
+   # Storing Race data into SQL database : race_table
+   conn = sqlite3.connect("data\\race_data.db")
+   f1_race_df.to_sql("race_table", conn, if_exists="replace", index=False)
+   print("Race Data Stored Successfully")
+   conn.close()
    
-   # Get recent data for current year
-   year = get_recent_data(current_year)
-   
-   # Handle case where we need to catch up on previous year's data
-   while year != current_year:
-      year = get_recent_data(current_year)
-   
-   print(f"\n✓ Data extraction complete for {current_year}")
+   # Storing Weather data into SQL database : weather_table
+   conn = sqlite3.connect("data\\weather_data.db")
+   f1_weather_df.to_sql("weather_table", conn, if_exists="replace", index = False)
+   print("Weather Data Stored Successfully")
+   conn.close()
 
-if __name__ == "__main__":
-   recent_data_main()
-   
