@@ -120,13 +120,13 @@ def get_recent_data(current_year):
    f1_weather_df = pd.DataFrame(weather_values)
 
    # Storing Race data into SQL database : race_table
-   conn = sqlite3.connect("data\\race_data.db")
+   conn = sqlite3.connect("data/f1_race_data.db")
    f1_race_df.to_sql("race_table", conn, if_exists="replace", index=False)
    print("Race Data Stored Successfully")
    conn.close()
    
    # Storing Weather data into SQL database : weather_table
-   conn = sqlite3.connect("data\\weather_data.db")
+   conn = sqlite3.connect("data/f1_weather_data.db")
    f1_weather_df.to_sql("weather_table", conn, if_exists="replace", index = False)
    print("Weather Data Stored Successfully")
    conn.close()
