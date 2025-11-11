@@ -14,12 +14,12 @@ current_year = datetime.now().year
 
 
 # Load race data from SQLite database
-conn = sqlite3.connect("data/f1_race_data.db")
+conn = sqlite3.connect("C:/Users/HP/OneDrive/Desktop/Computer_Science/ResumeProjects/F1WinnerPredictor/data/f1_race_data.db")
 race_df = pd.read_sql("SELECT * FROM race_table", conn)
 conn.close()
 
 # Load weather data from SQLite database
-conn = sqlite3.connect("data/f1_weather_data.db")
+conn = sqlite3.connect("C:/Users/HP/OneDrive/Desktop/Computer_Science/ResumeProjects/F1WinnerPredictor/data/f1_weather_data.db")
 weather_df = pd.read_sql("SELECT * FROM weather_table", conn)
 conn.close()
 
