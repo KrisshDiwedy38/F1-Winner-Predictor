@@ -2,6 +2,8 @@ import fastf1 as f1
 import pandas as pd
 import sqlite3
 
+f1.Cache.enable_cache("C:/Users/HP/OneDrive/Desktop/Computer_Science/ResumeProjects/F1WinnerPredictor/data/f1_cache")
+
 years = [2018, 2019, 2020, 2021, 2022, 2023, 2024]
 events = ['R']
 rounds = [21, 21, 17, 22, 22 ,22 ,24]
@@ -61,19 +63,20 @@ for year in years:
             }
             result_values.append(race_data)
          weather_values.append(weather_data)
+         print(f"Data for {race_id} entered.")
 
 # Converting values into a panads dataframe
 f1_race_df = pd.DataFrame(result_values)
 f1_weather_df = pd.DataFrame(weather_values)
 
 # Storing Race data into SQL database : race_table
-conn = sqlite3.connect("data\\race_data.db")
+conn = sqlite3.connect("C:/Users/HP/OneDrive/Desktop/Computer_Science/ResumeProjects/F1WinnerPredictor/data/results.db")
 f1_race_df.to_sql("race_table", conn, if_exists="replace", index=False)
 print("Race Data Stored Successfully")
 conn.close()
 
 # Storing Weather data into SQL database : weather_table
-conn = sqlite3.connect("data\\weather_data.db")
+conn = sqlite3.connect("C:/Users/HP/OneDrive/Desktop/Computer_Science/ResumeProjects/F1WinnerPredictor/data/weather.db")
 f1_weather_df.to_sql("weather_table", conn, if_exists="replace", index = False)
 print("Weather Data Stored Successfully")
 conn.close()
