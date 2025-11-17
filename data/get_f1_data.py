@@ -68,6 +68,7 @@ for year in years:
 # Converting values into a panads dataframe
 f1_race_df = pd.DataFrame(result_values)
 f1_weather_df = pd.DataFrame(weather_values)
+print("Data converted to DF")
 
 # Storing Race data into SQL database : race_table
 conn = sqlite3.connect("C:/Users/HP/OneDrive/Desktop/Computer_Science/ResumeProjects/F1WinnerPredictor/data/results.db")

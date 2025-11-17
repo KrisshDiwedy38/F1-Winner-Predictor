@@ -16,7 +16,7 @@ print("\nInitializing system...")
 
 def load_data():
     """
-    Load F1 race data from Lab4
+    Load F1 race data from preprocessing
     """
 
     df = preprocessing()

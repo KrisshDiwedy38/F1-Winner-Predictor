@@ -121,13 +121,13 @@ def get_recent_data(current_year):
 
    # Storing Race data into SQL database : race_table
    conn = sqlite3.connect("C:/Users/HP/OneDrive/Desktop/Computer_Science/ResumeProjects/F1WinnerPredictor/data/results.db")
-   f1_race_df.to_sql("race_table", conn, if_exists="replace", index=False)
+   f1_race_df.to_sql("race_table", conn, if_exists="append", index=False)
    print("Race Data Stored Successfully")
    conn.close()
    
    # Storing Weather data into SQL database : weather_table
    conn = sqlite3.connect("C:/Users/HP/OneDrive/Desktop/Computer_Science/ResumeProjects/F1WinnerPredictor/data/weather.db")
-   f1_weather_df.to_sql("weather_table", conn, if_exists="replace", index = False)
+   f1_weather_df.to_sql("weather_table", conn, if_exists="append", index = False)
    print("Weather Data Stored Successfully")
    conn.close()
 
